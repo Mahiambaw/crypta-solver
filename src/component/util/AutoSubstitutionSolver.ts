@@ -184,7 +184,11 @@ export async function autoSolveSubstitution(
 
     if (r === 0) {
       currentKey = [...initialKey];
-    } else if (r === 1 && overallBestScore > rateDecryptedText(DecryptResult(ciphertext, initialKey))) {
+    } else if (
+      r === 1 &&
+      overallBestScore >
+        rateDecryptedText(DecryptResult(ciphertext, initialKey))
+    ) {
       currentKey = [...overallBestKey];
     } else {
       // Perturb baseline key with random swaps
@@ -287,6 +291,7 @@ async function formatPunctuation(text: string): Promise<string> {
     .replace(/\s+([.,!?:])/g, '$1')
     .replace(/([.,!?:])\s*/g, '$1 ')
     .replace(/\s*—\s*/g, ' — ')
+    .replace(/chosen\s*[—–-]\s*plaintext/gi, 'chosen-plaintext')
     .trim();
 
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
