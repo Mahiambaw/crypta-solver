@@ -291,7 +291,7 @@ async function formatPunctuation(text: string): Promise<string> {
     .replace(/\s+([.,!?:])/g, '$1')
     .replace(/([.,!?:])\s*/g, '$1 ')
     .replace(/\s*—\s*/g, ' — ')
-    .replace(/chosen\s*[—–-]\s*plaintext/gi, 'chosen-plaintext')
+    .replace(/\b(chosen)\s+—\s+(plaintext)\b/gi, '$1-$2')
     .trim();
 
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);

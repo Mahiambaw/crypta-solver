@@ -11,8 +11,11 @@ type CipherFormProps = {
   isLoading?: boolean;
 };
 
-const SAMPLE_CIPHERTEXT =
+const CHALLENGE_1_CIPHERTEXT =
   'OYOIULXONYOWSIOBOTUSOUONBLBRROKNYEEBLWBTUSCIEEEDYKBIXYKNUXBLOYXNPEYILOBROYQOYKVKUHHYYLOQNBPYXXPNJYXBNYOUPBLXONBWYOBIXKIUEULZYYZYWB';
+
+const CHALLENGE_2_VIGENERE_CIPHERTEXT =
+  'RFCTYIQVNWKZVZALQDCUBEQMFSRIHSKVITKNMKYFMKWTSSOINAHELHAXTMEAGUWYWPMKYOAVZXALQZYEBXPMIIMUIFLKMKJSYUUGKJWFLOUVXGYNMBYHYQLJHILHAXTMMWTIMCBWFMRSFGTXZGATIFBKKHBPPIFKHSMLVQQBBAGXUNJLNMNLXILHATDMJSKVBHLRFMLLAVAVHVKLIGKUWMKEEPUINFBXMVAUZMMLZTTEUVUZXRLBUXTMJGECAXEGQTFWGKEHYOPWNAMJMXTWFPYNBXMGLVQWLSVCMFPKTBHGMGZHCMPMAGHUAXJYDQNQTWBXYEXTXGMKWJBSFMWZTITXZFMJVSZVKHTQMBBWYZZLAOZWQFMFMOLVNZYSDKPXCMSMHWKVKBWLQZWGEFVHUIANNZXDWLAWUVAMERZVOEDIWLXIQLAMOAIXMYMTYXANXWVZXALVUVAALKPXZXDWHYVFVOPGFQIFIFALLWEMXTRVDXYCBMLKHEKHTQMMPWGDWWLVMBYDRRKJBEUVNWWNQMOMFKIEFRBAHXTMCKTSTXASOWHKMICVAEOQJZXIEAPGTVITHUGXSWQKUFWVKBWLQZXGMPWNOEHMJJHMMGASNMUXHIUBKENTYSGUAAYIILWGWVJKLEWMLAGUMXKHABNZXEMQAGTIFDXEOXPWMSHGPELTZLBTUAGKMQAEFBUUDUWMFSGNCFWRTEALQKFMXJGHBRQMXXHIAHSZUVAUKPXMVGTIFDXEOXALDMYOBKPMOITMFHHWBAPWWMSUHCWGCIDVUE';
 
 function CipherForm({ onAnalyze, onClear, isLoading = false }: CipherFormProps) {
   const [text, setText] = useState<string>('');
@@ -54,8 +57,13 @@ function CipherForm({ onAnalyze, onClear, isLoading = false }: CipherFormProps) 
   };
 
   const handleLoadExample = () => {
-    setText(SAMPLE_CIPHERTEXT);
-    setCipherType('frequency Analysis');
+    if (cipherType === 'vigenere') {
+      setText(CHALLENGE_2_VIGENERE_CIPHERTEXT);
+      setSubKey('TRITHEMIUS');
+    } else {
+      setText(CHALLENGE_1_CIPHERTEXT);
+      setCipherType('frequency Analysis');
+    }
   };
 
   return (
@@ -120,6 +128,9 @@ function CipherForm({ onAnalyze, onClear, isLoading = false }: CipherFormProps) 
             <option value="frequency Analysis">
               📊 Frequency Analysis (Substitution)
             </option>
+            <option value="vigenere">
+              🔑 Vigenère Cipher (Passphrase)
+            </option>
             <option value="caesar">🏛️ Caesar Cipher</option>
           </select>
         </div>
@@ -140,6 +151,24 @@ function CipherForm({ onAnalyze, onClear, isLoading = false }: CipherFormProps) 
               onChange={handleChange}
               className="w-full bg-[#0b132b] border border-blue-900/60 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-blue-500"
               placeholder="e.g. 3"
+            />
+          </div>
+        )}
+
+        {/* Vigenère Cipher Passphrase Input (if selected) */}
+        {cipherType === 'vigenere' && (
+          <div className="space-y-2 bg-[#060a17] border border-blue-900/40 rounded-xl p-3.5">
+            <label className="text-xs text-slate-300 font-medium block">
+              Secret Passphrase / Key:
+            </label>
+            <input
+              type="text"
+              name="subKey"
+              value={subKey}
+              disabled={isLoading}
+              onChange={handleChange}
+              className="w-full bg-[#0b132b] border border-blue-900/60 rounded-lg px-3 py-2 text-sm text-white font-mono uppercase tracking-wider focus:outline-none focus:border-blue-500"
+              placeholder="e.g. TRITHEMIUS"
             />
           </div>
         )}
@@ -191,12 +220,10 @@ function CipherForm({ onAnalyze, onClear, isLoading = false }: CipherFormProps) 
 
       {/* Simon Singh Cryptography Quote Card with Sherlock Detective Background */}
       <div className="relative overflow-hidden bg-gradient-to-r from-[#0b132b] via-[#091024]/95 to-[#040714] border border-blue-900/40 rounded-2xl p-6 shadow-xl text-slate-300 min-h-[160px] flex flex-col justify-between">
-        {/* Background Detective Image */}
         <div
           className="absolute inset-0 bg-cover bg-right-top opacity-40 mix-blend-screen pointer-events-none"
           style={{ backgroundImage: "url('/detective.jpg')" }}
         />
-        {/* Dark Vignette Overlay for Text Legibility */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0b132b] via-[#0b132b]/80 to-transparent pointer-events-none" />
 
         <div className="relative z-10 flex items-start gap-4">

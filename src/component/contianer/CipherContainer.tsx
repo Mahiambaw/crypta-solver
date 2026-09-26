@@ -6,12 +6,20 @@ import {
   FrequencyAanalysisResult,
   type frequencyAanalysisSolverData,
 } from '../result/FrequencyAanalysisSolverResult';
+import {
+  VigenereCipherResolver,
+  type VigenereResultData,
+} from '../result/VigenèreCipherReslover';
 import { decryptWithKey } from '../util/CeaserSolver';
 import { frequencyAanalysisSolver } from '../util/FrequencyAanalysis';
+import { decryptVigenereCipher } from '../util/VigenèreCipherReslover';
 
 function CipherContainer() {
   const [results, setResult] = useState<
-    CeaserResultData | frequencyAanalysisSolverData | null
+    | CeaserResultData
+    | frequencyAanalysisSolverData
+    | VigenereResultData
+    | null
   >(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -19,6 +27,7 @@ function CipherContainer() {
     encryptedText: string,
     cipherType: string,
     key?: number,
+    subKey?: string,
   ) => {
     setIsLoading(true);
     setResult(null);
@@ -30,8 +39,15 @@ function CipherContainer() {
         return;
       }
 
+      if (cipherType === 'vigenere') {
+        await new Promise((resolve) => setTimeout(resolve, 60));
+        const passphrase = subKey || 'TRITHEMIUS';
+        const output = await decryptVigenereCipher(encryptedText, passphrase);
+        setResult({ decodedText: output, keyUsed: passphrase.toUpperCase() });
+        return;
+      }
+
       if (cipherType === 'frequency Analysis') {
-        // Yield to allow the browser to paint the loading spinner immediately
         await new Promise((resolve) => setTimeout(resolve, 60));
         const output = await frequencyAanalysisSolver(encryptedText);
         setResult(output);
@@ -60,15 +76,13 @@ function CipherContainer() {
         />
       </div>
 
-      {/* Right Column (7 cols): Decrypted Output & Frequency Bar Chart */}
+      {/* Right Column (7 cols): Decrypted Output & Charts */}
       <div className="lg:col-span-7 space-y-6">
         {/* Animated Circular Loading State */}
         {isLoading && (
           <div className="bg-[#0b132b]/80 border border-blue-500/40 rounded-2xl p-10 shadow-2xl backdrop-blur-md flex flex-col items-center justify-center text-center space-y-5">
             <div className="relative flex items-center justify-center">
-              {/* Outer pulsing glow ring */}
               <div className="w-16 h-16 rounded-full bg-blue-500/20 animate-ping absolute" />
-              {/* Rotating Circular Spinner */}
               <div className="w-14 h-14 rounded-full border-4 border-blue-900/60 border-t-sky-400 border-r-blue-500 animate-spin" />
             </div>
 
@@ -88,8 +102,8 @@ function CipherContainer() {
                 </span>
               </h3>
               <p className="text-xs text-slate-400 max-w-sm">
-                Running letter frequency calculations and multi-restart hill
-                climbing heuristic search...
+                Processing cipher algorithms and natural language
+                reconstruction...
               </p>
             </div>
 
@@ -109,11 +123,8 @@ function CipherContainer() {
               Ready to Decrypt
             </h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Paste your ciphertext or click{' '}
-              <strong className="text-slate-400">Load Example</strong> on the
-              left, then click{' '}
-              <strong className="text-blue-400">Decrypt</strong> to see the
-              auto-solved results and frequency analysis.
+              Select your cipher on the left, load or paste ciphertext, and click{' '}
+              <strong className="text-blue-400">Decrypt</strong>.
             </p>
           </div>
         )}
@@ -122,6 +133,7 @@ function CipherContainer() {
         {!isLoading && (
           <>
             <CeaserResults results={results} />
+            <VigenereCipherResolver results={results} />
             <FrequencyAanalysisResult results={results} />
           </>
         )}
