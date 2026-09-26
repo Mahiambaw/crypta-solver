@@ -59,7 +59,9 @@ function isCeaserResult(results: unknown): results is CeaserResultData {
   return (
     typeof results === 'object' &&
     results !== null &&
-    'decodedText' in results
+    'decodedText' in results &&
+    !('keyUsed' in results) &&
+    !('compareFrequeniesResult' in results)
   );
 }
 
