@@ -12,29 +12,37 @@ import {
 } from '../result/VigenèreCipherReslover';
 import { decryptWithKey } from '../util/CeaserSolver';
 import { frequencyAanalysisSolver } from '../util/FrequencyAanalysis';
-import { decryptVigenereCipher } from '../util/VigenèreCipherReslover';
+import { decryptVigenereCipher } from '../util/VigenèreCipherAnalysis';
+import { OneTimePadResult } from '../result/OneTimePadResult';
+import {
+  solveOneTimePadKey,
+  type OneTimePadResultData,
+} from '../util/OneTimePadSolver';
 
 function CipherContainer() {
+  const [text, setText] = useState('');
+  const [keyText, setKeyText] = useState(0);
+  const [subKey, setSubKey] = useState('');
+  const [knownPlainText, setKnownPlainText] = useState('');
+  const [cipherType, setCipherType] = useState('frequency Analysis');
   const [results, setResult] = useState<
     | CeaserResultData
     | frequencyAanalysisSolverData
     | VigenereResultData
+    | OneTimePadResultData
     | null
   >(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState('');
 
-  const handleAnalyze = async (
-    encryptedText: string,
-    cipherType: string,
-    key?: number,
-    subKey?: string,
-  ) => {
+  const handleAnalyze = async () => {
     setIsLoading(true);
     setResult(null);
+    setError('');
 
     try {
       if (cipherType === 'caesar') {
-        const output = decryptWithKey(encryptedText, key ?? 0);
+        const output = decryptWithKey(text, keyText);
         setResult({ decodedText: output });
         return;
       }
@@ -42,25 +50,37 @@ function CipherContainer() {
       if (cipherType === 'vigenere') {
         await new Promise((resolve) => setTimeout(resolve, 60));
         const passphrase = subKey || 'TRITHEMIUS';
-        const output = await decryptVigenereCipher(encryptedText, passphrase);
+        const output = await decryptVigenereCipher(text, passphrase);
         setResult({ decodedText: output, keyUsed: passphrase.toUpperCase() });
         return;
       }
 
       if (cipherType === 'frequency Analysis') {
         await new Promise((resolve) => setTimeout(resolve, 60));
-        const output = await frequencyAanalysisSolver(encryptedText);
+        const output = await frequencyAanalysisSolver(text);
         setResult(output);
         return;
       }
 
+      if (cipherType === 'oneTimePad') {
+        setResult(solveOneTimePadKey(text, knownPlainText));
+        return;
+      }
+
       setResult(null);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Unable to analyze the ciphertext.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleClear = () => {
+    setError('');
+    setText('');
+    setKeyText(0);
+    setSubKey('');
+    setKnownPlainText('');
     setResult(null);
     setIsLoading(false);
   };
@@ -70,6 +90,16 @@ function CipherContainer() {
       {/* Left Column (5 cols): Input Form & Quote */}
       <div className="lg:col-span-5 space-y-6">
         <CipherForm
+          text={text}
+          keyText={keyText}
+          subKey={subKey}
+          knownPlainText={knownPlainText}
+          cipherType={cipherType}
+          setText={setText}
+          setKeyText={setKeyText}
+          setSubKey={setSubKey}
+          setKnownPlainText={setKnownPlainText}
+          setCipherType={setCipherType}
           onAnalyze={handleAnalyze}
           onClear={handleClear}
           isLoading={isLoading}
@@ -78,6 +108,7 @@ function CipherContainer() {
 
       {/* Right Column (7 cols): Decrypted Output & Charts */}
       <div className="lg:col-span-7 space-y-6">
+        {error && <p role="alert" className="text-sm text-amber-300">{error}</p>}
         {/* Animated Circular Loading State */}
         {isLoading && (
           <div className="bg-[#0b132b]/80 border border-blue-500/40 rounded-2xl p-10 shadow-2xl backdrop-blur-md flex flex-col items-center justify-center text-center space-y-5">
@@ -123,8 +154,8 @@ function CipherContainer() {
               Ready to Decrypt
             </h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Select your cipher on the left, load or paste ciphertext, and click{' '}
-              <strong className="text-blue-400">Decrypt</strong>.
+              Select your cipher on the left, load or paste ciphertext, and
+              click <strong className="text-blue-400">Decrypt</strong>.
             </p>
           </div>
         )}
@@ -135,6 +166,7 @@ function CipherContainer() {
             <CeaserResults results={results} />
             <VigenereCipherResolver results={results} />
             <FrequencyAanalysisResult results={results} />
+            <OneTimePadResult results={results} />
           </>
         )}
       </div>

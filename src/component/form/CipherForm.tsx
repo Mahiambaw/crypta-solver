@@ -1,12 +1,15 @@
-import { useState } from 'react';
-
 type CipherFormProps = {
-  onAnalyze: (
-    encryptedText: string,
-    cipherType: string,
-    key?: number,
-    subKey?: string,
-  ) => void;
+  text: string;
+  keyText: number;
+  subKey: string;
+  knownPlainText: string;
+  cipherType: string;
+  setText: (value: string) => void;
+  setKeyText: (value: number) => void;
+  setSubKey: (value: string) => void;
+  setKnownPlainText: (value: string) => void;
+  setCipherType: (value: string) => void;
+  onAnalyze: () => void;
   onClear?: () => void;
   isLoading?: boolean;
 };
@@ -17,12 +20,21 @@ const CHALLENGE_1_CIPHERTEXT =
 const CHALLENGE_2_VIGENERE_CIPHERTEXT =
   'RFCTYIQVNWKZVZALQDCUBEQMFSRIHSKVITKNMKYFMKWTSSOINAHELHAXTMEAGUWYWPMKYOAVZXALQZYEBXPMIIMUIFLKMKJSYUUGKJWFLOUVXGYNMBYHYQLJHILHAXTMMWTIMCBWFMRSFGTXZGATIFBKKHBPPIFKHSMLVQQBBAGXUNJLNMNLXILHATDMJSKVBHLRFMLLAVAVHVKLIGKUWMKEEPUINFBXMVAUZMMLZTTEUVUZXRLBUXTMJGECAXEGQTFWGKEHYOPWNAMJMXTWFPYNBXMGLVQWLSVCMFPKTBHGMGZHCMPMAGHUAXJYDQNQTWBXYEXTXGMKWJBSFMWZTITXZFMJVSZVKHTQMBBWYZZLAOZWQFMFMOLVNZYSDKPXCMSMHWKVKBWLQZWGEFVHUIANNZXDWLAWUVAMERZVOEDIWLXIQLAMOAIXMYMTYXANXWVZXALVUVAALKPXZXDWHYVFVOPGFQIFIFALLWEMXTRVDXYCBMLKHEKHTQMMPWGDWWLVMBYDRRKJBEUVNWWNQMOMFKIEFRBAHXTMCKTSTXASOWHKMICVAEOQJZXIEAPGTVITHUGXSWQKUFWVKBWLQZXGMPWNOEHMJJHMMGASNMUXHIUBKENTYSGUAAYIILWGWVJKLEWMLAGUMXKHABNZXEMQAGTIFDXEOXPWMSHGPELTZLBTUAGKMQAEFBUUDUWMFSGNCFWRTEALQKFMXJGHBRQMXXHIAHSZUVAUKPXMVGTIFDXEOXALDMYOBKPMOITMFHHWBAPWWMSUHCWGCIDVUE';
 
-function CipherForm({ onAnalyze, onClear, isLoading = false }: CipherFormProps) {
-  const [text, setText] = useState<string>('');
-  const [keyText, setKeyText] = useState<number>(0);
-  const [subKey, setSubKey] = useState<string>('');
-  const [cipherType, setCipherType] = useState<string>('frequency Analysis');
-
+function CipherForm({
+  text,
+  keyText,
+  subKey,
+  knownPlainText,
+  cipherType,
+  setText,
+  setKeyText,
+  setSubKey,
+  setKnownPlainText,
+  setCipherType,
+  onAnalyze,
+  onClear,
+  isLoading = false,
+}: CipherFormProps) {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -38,6 +50,9 @@ function CipherForm({ onAnalyze, onClear, isLoading = false }: CipherFormProps) 
     if (name === 'subKey') {
       setSubKey(value);
     }
+    if (name === 'knownPlainText') {
+      setKnownPlainText(value);
+    }
     if (name === 'cipherType') {
       setCipherType(value);
     }
@@ -46,13 +61,10 @@ function CipherForm({ onAnalyze, onClear, isLoading = false }: CipherFormProps) 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isLoading) return;
-    onAnalyze(text, cipherType, keyText, subKey);
+    onAnalyze();
   };
 
   const handleClearClick = () => {
-    setText('');
-    setKeyText(0);
-    setSubKey('');
     onClear?.();
   };
 
@@ -132,6 +144,7 @@ function CipherForm({ onAnalyze, onClear, isLoading = false }: CipherFormProps) 
               🔑 Vigenère Cipher (Passphrase)
             </option>
             <option value="caesar">🏛️ Caesar Cipher</option>
+            <option value="oneTimePad">🧮 One-Time Pad</option>
           </select>
         </div>
 
@@ -169,6 +182,29 @@ function CipherForm({ onAnalyze, onClear, isLoading = false }: CipherFormProps) 
               onChange={handleChange}
               className="w-full bg-[#0b132b] border border-blue-900/60 rounded-lg px-3 py-2 text-sm text-white font-mono uppercase tracking-wider focus:outline-none focus:border-blue-500"
               placeholder="e.g. TRITHEMIUS"
+            />
+          </div>
+        )}
+
+        {/* One-Time Pad Known Plaintext Input (if selected) */}
+        {cipherType === 'oneTimePad' && (
+          <div className="space-y-3 bg-[#060a17] border border-blue-900/40 rounded-xl p-3.5">
+            <div className="flex items-center justify-between gap-3">
+              <label className="text-xs text-slate-300 font-medium block">
+                Known plaintext:
+              </label>
+              <span className="text-[11px] text-slate-500 font-mono">
+                Characters: {knownPlainText.length}
+              </span>
+            </div>
+            <textarea
+              name="knownPlainText"
+              value={knownPlainText}
+              disabled={isLoading}
+              rows={3}
+              onChange={handleChange}
+              className="w-full bg-[#0b132b] border border-blue-900/60 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-blue-500 resize-none"
+              placeholder="Paste the first known plaintext sentence..."
             />
           </div>
         )}
