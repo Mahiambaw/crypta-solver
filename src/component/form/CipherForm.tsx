@@ -3,11 +3,15 @@ type CipherFormProps = {
   keyText: number;
   subKey: string;
   knownPlainText: string;
+  rsaE: number;
+  rsaN: number;
   cipherType: string;
   setText: (value: string) => void;
   setKeyText: (value: number) => void;
   setSubKey: (value: string) => void;
   setKnownPlainText: (value: string) => void;
+  setRsaE: (value: number) => void;
+  setRsaN: (value: number) => void;
   setCipherType: (value: string) => void;
   onAnalyze: () => void;
   onClear?: () => void;
@@ -25,11 +29,15 @@ function CipherForm({
   keyText,
   subKey,
   knownPlainText,
+  rsaE,
+  rsaN,
   cipherType,
   setText,
   setKeyText,
   setSubKey,
   setKnownPlainText,
+  setRsaE,
+  setRsaN,
   setCipherType,
   onAnalyze,
   onClear,
@@ -52,6 +60,12 @@ function CipherForm({
     }
     if (name === 'knownPlainText') {
       setKnownPlainText(value);
+    }
+    if (name === 'rsaE') {
+      setRsaE(Number(value));
+    }
+    if (name === 'rsaN') {
+      setRsaN(Number(value));
     }
     if (name === 'cipherType') {
       setCipherType(value);
@@ -96,7 +110,9 @@ function CipherForm({
                   Enter Ciphertext
                 </h3>
                 <p className="text-xs text-slate-400">
-                  Paste your encrypted text below. Only letters will be analyzed.
+                  {cipherType === 'rsa'
+                    ? 'Paste the space-separated RSA ciphertext numbers below.'
+                    : 'Paste your encrypted text below. Only letters will be analyzed.'}
                 </p>
               </div>
             </div>
@@ -112,7 +128,11 @@ function CipherForm({
             rows={5}
             disabled={isLoading}
             className="w-full bg-[#060a17] border border-blue-900/50 rounded-xl p-4 text-xs font-mono text-slate-200 tracking-wider resize-none focus:outline-none focus:border-blue-500 transition leading-relaxed disabled:opacity-50"
-            placeholder="Type or paste encrypted text here..."
+            placeholder={
+              cipherType === 'rsa'
+                ? 'e.g. 8294808 5675969 9943004...'
+                : 'Type or paste encrypted text here...'
+            }
           />
         </div>
 
@@ -140,11 +160,10 @@ function CipherForm({
             <option value="frequency Analysis">
               📊 Frequency Analysis (Substitution)
             </option>
-            <option value="vigenere">
-              🔑 Vigenère Cipher (Passphrase)
-            </option>
+            <option value="vigenere">🔑 Vigenère Cipher (Passphrase)</option>
             <option value="caesar">🏛️ Caesar Cipher</option>
             <option value="oneTimePad">🧮 One-Time Pad</option>
+            <option value="rsa">🔐 RSA</option>
           </select>
         </div>
 
@@ -209,6 +228,49 @@ function CipherForm({
           </div>
         )}
 
+        {cipherType === 'rsa' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <label
+                htmlFor="rsaE"
+                className="text-xs text-slate-300 font-medium"
+              >
+                Public exponent (e)
+              </label>
+              <input
+                id="rsaE"
+                name="rsaE"
+                type="number"
+                min={1}
+                step={1}
+                value={rsaE}
+                disabled={isLoading}
+                onChange={handleChange}
+                className="w-full bg-[#060a17] border border-blue-900/50 rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <label
+                htmlFor="rsaN"
+                className="text-xs text-slate-300 font-medium"
+              >
+                Modulus (N)
+              </label>
+              <input
+                id="rsaN"
+                name="rsaN"
+                type="number"
+                min={2}
+                step={1}
+                value={rsaN}
+                disabled={isLoading}
+                onChange={handleChange}
+                className="w-full bg-[#060a17] border border-blue-900/50 rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="space-y-3 pt-2">
           <button
@@ -242,14 +304,16 @@ function CipherForm({
             >
               🗑 Clear Text
             </button>
-            <button
-              type="button"
-              onClick={handleLoadExample}
-              disabled={isLoading}
-              className="flex-1 py-2.5 px-4 bg-[#0d1633] hover:bg-[#132047] border border-blue-900/40 text-slate-300 text-xs font-medium rounded-xl flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
-            >
-              📄 Load Example
-            </button>
+            {cipherType !== 'rsa' && (
+              <button
+                type="button"
+                onClick={handleLoadExample}
+                disabled={isLoading}
+                className="flex-1 py-2.5 px-4 bg-[#0d1633] hover:bg-[#132047] border border-blue-900/40 text-slate-300 text-xs font-medium rounded-xl flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
+              >
+                📄 Load Example
+              </button>
+            )}
           </div>
         </div>
       </form>

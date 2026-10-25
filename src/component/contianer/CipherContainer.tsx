@@ -14,22 +14,27 @@ import { decryptWithKey } from '../util/CeaserSolver';
 import { frequencyAanalysisSolver } from '../util/FrequencyAanalysis';
 import { decryptVigenereCipher } from '../util/VigenèreCipherAnalysis';
 import { OneTimePadResult } from '../result/OneTimePadResult';
+import { RsaResult } from '../result/RsaResult';
 import {
   solveOneTimePadKey,
   type OneTimePadResultData,
 } from '../util/OneTimePadSolver';
+import { solveRsaCipher, type RsaSolveResult } from '../util/RsaSolve';
 
 function CipherContainer() {
   const [text, setText] = useState('');
   const [keyText, setKeyText] = useState(0);
   const [subKey, setSubKey] = useState('');
   const [knownPlainText, setKnownPlainText] = useState('');
+  const [rsaE, setRsaE] = useState(11);
+  const [rsaN, setRsaN] = useState(14053583);
   const [cipherType, setCipherType] = useState('frequency Analysis');
   const [results, setResult] = useState<
     | CeaserResultData
     | frequencyAanalysisSolverData
     | VigenereResultData
     | OneTimePadResultData
+    | RsaSolveResult
     | null
   >(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -67,9 +72,34 @@ function CipherContainer() {
         return;
       }
 
+      if (cipherType === 'rsa') {
+        if (
+          !Number.isInteger(rsaE) ||
+          rsaE < 1 ||
+          !Number.isInteger(rsaN) ||
+          rsaN < 2
+        ) {
+          throw new Error(
+            'Enter a positive integer for e and an integer greater than 1 for N.',
+          );
+        }
+        const output = solveRsaCipher(text, rsaE, rsaN);
+        if (!output) {
+          throw new Error(
+            'Could not factor N or find the private exponent for this e and N.',
+          );
+        }
+        setResult(output);
+        return;
+      }
+
       setResult(null);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Unable to analyze the ciphertext.');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to analyze the ciphertext.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +111,8 @@ function CipherContainer() {
     setKeyText(0);
     setSubKey('');
     setKnownPlainText('');
+    setRsaE(11);
+    setRsaN(14053583);
     setResult(null);
     setIsLoading(false);
   };
@@ -94,11 +126,15 @@ function CipherContainer() {
           keyText={keyText}
           subKey={subKey}
           knownPlainText={knownPlainText}
+          rsaE={rsaE}
+          rsaN={rsaN}
           cipherType={cipherType}
           setText={setText}
           setKeyText={setKeyText}
           setSubKey={setSubKey}
           setKnownPlainText={setKnownPlainText}
+          setRsaE={setRsaE}
+          setRsaN={setRsaN}
           setCipherType={setCipherType}
           onAnalyze={handleAnalyze}
           onClear={handleClear}
@@ -108,7 +144,11 @@ function CipherContainer() {
 
       {/* Right Column (7 cols): Decrypted Output & Charts */}
       <div className="lg:col-span-7 space-y-6">
-        {error && <p role="alert" className="text-sm text-amber-300">{error}</p>}
+        {error && (
+          <p role="alert" className="text-sm text-amber-300">
+            {error}
+          </p>
+        )}
         {/* Animated Circular Loading State */}
         {isLoading && (
           <div className="bg-[#0b132b]/80 border border-blue-500/40 rounded-2xl p-10 shadow-2xl backdrop-blur-md flex flex-col items-center justify-center text-center space-y-5">
@@ -167,6 +207,7 @@ function CipherContainer() {
             <VigenereCipherResolver results={results} />
             <FrequencyAanalysisResult results={results} />
             <OneTimePadResult results={results} />
+            <RsaResult results={results} />
           </>
         )}
       </div>
